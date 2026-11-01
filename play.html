@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playing - H5Play</title>
+    <!-- 使用 Tailwind CSS 样式库 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 隐藏滚动条，保持游戏完全铺满屏幕 */
+        body {
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-black text-gray-100 flex flex-col h-full font-sans antialiased">
+
+    <!-- 顶部状态简易控制栏（让玩家具有操控感、随时安全返回、并放置 1 个 AdSense 自适应横幅） -->
+    <header class="bg-gray-950/90 border-b border-gray-900 px-6 py-3 flex items-center justify-between select-none z-50">
+        
+        <!-- 左侧返回大厅 -->
+        <div class="flex items-center gap-4">
+            <button onclick="goBackToPortal()" 
+                    class="px-4 py-1.5 bg-gray-900 hover:bg-gray-800 text-xs font-semibold text-gray-300 hover:text-white rounded-lg border border-gray-800 transition flex items-center gap-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                <span data-i18n="play_mode_back">Back to Portal</span>
+            </button>
+            <div class="hidden md:block h-4 w-px bg-gray-800"></div>
+            <!-- 加载中的标题 -->
+            <span id="player-title" class="text-xs font-bold text-gray-400">Loading Game...</span>
+        </div>
+
+        <!-- 中部自适应横幅广告区（在新标签页非游戏核心区展示，符合 AdSense AFG 之前的标准插页/小幅 Banner 规范） -->
+        <div class="hidden lg:flex items-center justify-center bg-gray-900 border border-gray-800 rounded-lg px-8 py-1 h-9 max-w-xl overflow-hidden text-center relative">
+            <span class="text-[10px] tracking-widest text-indigo-400 font-bold uppercase" data-i18n="ad_placeholder">Sponsored Advertisement</span>
+            <div class="absolute -right-10 -bottom-10 w-20 h-20 bg-indigo-600/5 rounded-full blur-xl"></div>
+        </div>
+
+        <!-- 右侧功能键：重载与控制 -->
+        <div class="flex items-center gap-3">
+            <button onclick="reloadGame()" 
+                    class="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-xs text-gray-300 rounded-lg border border-gray-800 transition flex items-center gap-1.5">
+                🔄 <span data-i18n="play_mode_reload">Reload</span>
+            </button>
+            <button onclick="toggleTheaterMode()" id="theater-btn"
+                    class="px-3 py-1.5 bg-gray-900 hover:bg-indigo-600 text-xs text-gray-300 hover:text-white rounded-lg border border-gray-800 hover:border-indigo-500 transition">
+                📺 <span data-i18n="play_mode_theater">Theater</span>
+            </button>
+        </div>
+
+    </header>
+
+    <!-- 游戏主容器区域 -->
+    <div id="game-container" class="flex-1 w-full bg-black relative flex items-center justify-center transition-all duration-500">
+        
+        <!-- 极致加载动效骨架屏 (Loading Overlay) -->
+        <div id="player-loader" class="absolute inset-0 bg-gray-950 flex flex-col items-center justify-center text-center z-40 transition-opacity duration-500">
+            <div class="relative flex items-center justify-center mb-6">
+                <!-- 旋转呼吸光圈 -->
+                <div class="w-16 h-16 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div class="absolute w-8 h-8 bg-indigo-600 rounded-lg animate-ping opacity-70"></div>
+            </div>
+            <p class="text-sm font-semibold tracking-wider text-indigo-400 animate-pulse uppercase">Syncing H5 Assets...</p>
+        </div>
+
+        <!-- 游戏 H5 的主运行 Frame -->
+        <iframe id="pure-player-frame" 
+                class="w-full h-full border-none shadow-2xl transition-all duration-500 bg-black"
+                allow="autoplay; gamepad; keyboard-map; fullscreen;"
+                src="about:blank"></iframe>
+
+    </div>
+
+    <!-- 手机端横屏旋转提示 overlay -->
+    <div id="rotate-warning" class="hidden fixed inset-0 bg-gray-950 z-50 flex-col items-center justify-center text-center p-6">
+        <div class="w-16 h-16 bg-indigo-600/10 rounded-full flex items-center justify-center mb-4 border border-indigo-500 animate-bounce">
+            📱
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2">Please Rotate Your Device</h3>
+        <p class="text-sm text-gray-400">This game is best played in landscape mode.</p>
+    </div>
+
+    <!-- 主要交互及数据绑定主脚本 -->
+    <script src="assets/js/app.js"></script>
+    <script>
+        // 返回大厅安全回退
+        function goBackToPortal() {
+            // 记录最初的 URL 供 fallback 使用
+            const fallbackUrl = (document.referrer && document.referrer.includes(window.location.hostname)) 
+                ? document.referrer 
+                : "index.html";
+
+            // 情况1：如果有历史记录（在当前标签页打开的游戏），则尝试回退
+            if (window.history.length > 1) {
+                window.history.back();
+                
+                // 延迟 150ms 检查是否成功回退（若仍在当前页面，说明回退被拦截或失效，继续尝试关闭或跳转）
+                setTimeout(() => {
+                    attemptCloseOrRedirect(fallbackUrl);
+                }, 150);
+            } else {
+                // 情况2：没有历史记录（新开标签页打开的游戏），直接尝试关闭或跳转
+                attemptCloseOrRedirect(fallbackUrl);
+            }
+        }
+
+        // 尝试关闭窗口，若失败则跳转回大厅
+        function attemptCloseOrRedirect(fallbackUrl) {
+            try {
+                // 经典浏览器脚本关闭窗口 Trick：欺骗浏览器使其认为此窗口由脚本打开
+                window.opener = null;
+                window.open('', '_self');
+                window.close();
+            } catch (e) {
+                console.error("Failed to close window via script trick:", e);
+            }
+
+            // 延迟 100ms：如果窗口仍未关闭（可能部分安全策略极其严格的浏览器仍然拦截了 close），则执行最终重定向
+            setTimeout(() => {
+                window.location.href = fallbackUrl;
+            }, 100);
+        }
+
+        // 初始拉起游戏
+        document.addEventListener("DOMContentLoaded", () => {
+            initPurePlayer();
+            
+            // 手机端如果是横屏游戏，则监听并提示
+            checkOrientation();
+            window.addEventListener("resize", checkOrientation);
+        });
+
+        // 重新载入游戏
+        function reloadGame() {
+            const frame = document.getElementById("pure-player-frame");
+            if (frame) {
+                const currentSrc = frame.src;
+                frame.src = "about:blank";
+                // 重新展现 loading 状态
+                const loader = document.createElement("div");
+                loader.id = "player-loader";
+                loader.className = "absolute inset-0 bg-gray-950 flex flex-col items-center justify-center text-center z-40 transition-opacity duration-500";
+                loader.innerHTML = `
+                    <div class="relative flex items-center justify-center mb-6">
+                        <div class="w-16 h-16 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin"></div>
+                        <div class="absolute w-8 h-8 bg-indigo-600 rounded-lg animate-ping opacity-70"></div>
+                    </div>
+                    <p class="text-sm font-semibold tracking-wider text-indigo-400 animate-pulse uppercase">Reloading Assets...</p>
+                `;
+                document.getElementById("game-container").appendChild(loader);
+
+                setTimeout(() => {
+                    frame.src = currentSrc;
+                }, 300);
+            }
+        }
+
+        // 切换剧场缩放比例（16:9 与铺满视口切换）
+        let isTheater = false;
+        function toggleTheaterMode() {
+            const container = document.getElementById("game-container");
+            const iframe = document.getElementById("pure-player-frame");
+            const btn = document.getElementById("theater-btn");
+
+            if (!container || !iframe) return;
+
+            isTheater = !isTheater;
+            if (isTheater) {
+                // 剧场模式：固定 16:9 优雅比例
+                iframe.classList.remove("w-full", "h-full");
+                iframe.classList.add("aspect-video", "h-[85vh]", "rounded-xl", "border", "border-indigo-600/40");
+                btn.classList.add("bg-indigo-600", "text-white");
+            } else {
+                // 铺满模式
+                iframe.classList.remove("aspect-video", "h-[85vh]", "rounded-xl", "border", "border-indigo-600/40");
+                iframe.classList.add("w-full", "h-full");
+                btn.classList.remove("bg-indigo-600", "text-white");
+            }
+        }
+
+        // 手机端方向检测
+        function checkOrientation() {
+            const warning = document.getElementById("rotate-warning");
+            if (!warning) return;
+
+            // 如果屏幕宽度小于 768px（手机移动端）且高度大于宽度（竖屏状态）
+            if (window.innerWidth < 768 && window.innerHeight > window.innerWidth) {
+                // 提示旋转屏幕，获得最佳横屏游玩体验
+                warning.classList.remove("hidden");
+                warning.classList.add("flex");
+            } else {
+                warning.classList.add("hidden");
+                warning.classList.remove("flex");
+            }
+        }
+    </script>
+</body>
+</html>
