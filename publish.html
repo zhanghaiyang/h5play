@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H5Play Console - 发布 & 编辑游戏</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- JSZip for Client-side ZIP Scanning -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            950: '#030712',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col antialiased">
+
+    <!-- 顶栏导航 -->
+    <header class="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between sticky top-0 z-40 shadow-md">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black text-lg text-white shadow-lg shadow-indigo-600/30">
+                H
+            </div>
+            <div>
+                <span class="text-sm font-bold tracking-wider text-white">H5Play Console</span>
+                <span class="text-xs text-indigo-400 font-medium ml-2 border-l border-gray-800 pl-2" id="header-action-type" data-zh="游戏编辑器" data-en="Editor">游戏编辑器</span>
+            </div>
+        </div>
+        <!-- 按钮区 -->
+        <div class="flex items-center gap-3">
+            <!-- 语言切换 -->
+            <button onclick="toggleLang()" id="lang-btn" class="text-xs px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 border border-gray-700 rounded-lg transition font-medium">
+                English
+            </button>
+            <a href="admin.html" class="px-4 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-gray-300 rounded-lg border border-gray-700 transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"></path></svg>
+                <span data-zh="返回后台" data-en="Cancel & Back">返回后台</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- 主编辑器表单区域 -->
+    <main class="flex-1 w-full max-w-3xl mx-auto px-4 py-8 md:py-12 space-y-6">
+        
+        <!-- 页面说明 -->
+        <div class="pb-4 border-b border-gray-800 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-black text-white tracking-tight" id="page-title" data-zh="发布新 H5 小游戏" data-en="Publish New H5 Game">发布新 H5 小游戏</h1>
+                <p class="text-xs text-gray-400 mt-1" data-zh="填写双语信息，配置自动托管 H5 小游戏" data-en="Fill in bilingual information and configure hosted H5 games">填写双语信息，配置自动托管 H5 小游戏</p>
+            </div>
+            <!-- 返回链接 -->
+            <span class="text-[10px] text-gray-500 font-mono" id="game-id-indicator">NEW_GAME</span>
+        </div>
+
+        <!-- 成功发布后的全屏遮罩/通知卡片 -->
+        <div id="success-card" class="hidden p-8 bg-gray-900 border border-green-500/20 rounded-2xl shadow-2xl text-center space-y-6 animate-fade-in">
+            <div class="w-16 h-16 bg-green-500/10 border border-green-500 rounded-full flex items-center justify-center mx-auto text-green-500 text-3xl animate-bounce">
+                ✓
+            </div>
+            <div class="space-y-2">
+                <h2 class="text-xl font-black text-white" id="success-title" data-zh="小游戏发布成功！" data-en="Game Published Successfully!">小游戏发布成功！</h2>
+                <p class="text-sm text-gray-400" id="success-desc" data-zh="游戏包已成功部署托管，前台可即时畅玩" data-en="Game files have been hosted. Users can play instantly on portal.">游戏包已成功部署托管，前台可即时畅玩</p>
+            </div>
+            <!-- 成功操作组 -->
+            <div class="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
+                <a href="admin.html" class="px-6 py-2.5 bg-gray-800 hover:bg-gray-700 text-sm font-semibold rounded-xl text-gray-300 transition" data-zh="返回控制台" data-en="Back to Console">返回控制台</a>
+                <a id="success-play-link" href="index.html" target="_blank" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-sm font-bold rounded-xl text-white shadow-lg shadow-indigo-600/20 transition" data-zh="前台即刻畅玩 🎮" data-en="Play Now on Portal 🎮">前台即刻畅玩 🎮</a>
+            </div>
+        </div>
+
+        <!-- 表单体 -->
+        <form id="game-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
+            <input type="hidden" id="edit-id">
+
+            <!-- 1. 语言双语标题 -->
+            <div class="bg-gray-900 border border-gray-800/80 p-6 rounded-2xl space-y-4">
+                <h3 class="text-xs font-black tracking-wider text-indigo-400 uppercase mb-2 flex items-center gap-1.5">
+                    <span>🔤</span> <span data-zh="中英文标题与基本配置" data-en="Bilingual Titles & Basic Settings">中英文标题与基本配置</span>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1.5" data-zh="游戏英文标题 (EN) *" data-en="Game Title (EN) *">游戏英文标题 (EN) *</label>
+                        <input type="text" id="form-title-en" required placeholder="e.g. Cyber Surfer 2088"
+                               class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1.5" data-zh="游戏中文标题 (ZH) *" data-en="Game Title (ZH) *">游戏中文标题 (ZH) *</label>
+                        <input type="text" id="form-title-zh" required placeholder="例如：赛博冲浪手 2088"
+                               class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition">
+                    </div>
+                </div>
+
+                <!-- 分类、评分与在玩人数 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1.5" data-zh="游戏核心分类" data-en="Category">游戏核心分类</label>
+                        <select id="form-category" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-sm text-white outline-none transition">
+                            <option value="action" data-zh="动作射击 Action" data-en="Action">动作射击 Action</option>
+                            <option value="puzzle" data-zh="益智烧脑 Puzzle" data-en="Puzzle">益智烧脑 Puzzle</option>
+                            <option value="casual" data-zh="休闲放松 Casual" data-en="Casual">休闲放松 Casual</option>
+                            <option value="sports" data-zh="体育竞速 Sports" data-en="Sports">体育竞速 Sports</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1.5" data-zh="初始评分 (1.0 - 5.0)" data-en="Initial Rating (1.0 - 5.0)">初始评分 (1.0 - 5.0)</label>
+                        <input type="number" id="form-rating" min="1" max="5" step="0.1" value="4.5" required
+                               class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-sm text-white outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1.5" data-zh="模拟活跃玩家数 (Players)" data-en="Mock Players (Players)">模拟活跃玩家数 (Players)</label>
+                        <input type="text" id="form-players" value="12K" required placeholder="e.g. 150K"
+                               class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-sm text-white outline-none transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 中英文描述介绍 -->
+            <div class="bg-gray-900 border border-gray-800/80 p-6 rounded-2xl space-y-4">
+                <h3 class="text-xs font-black tracking-wider text-indigo-400 uppercase mb-2 flex items-center gap-1.5">
+                    <span>📝</span> <span data-zh="游戏宣传描述" data-en="Game Descriptions">游戏宣传描述</span>
+                </h3>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1.5" data-zh="英文详情说明 (EN)" data-en="Description (EN)">英文详情说明 (EN)</label>
+                    <textarea id="form-desc-en" rows="3" placeholder="Describe the H5 game, features, and controls in English..."
+                              class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1.5" data-zh="中文详情说明 (ZH)" data-en="Description (ZH)">中文详情说明 (ZH)</label>
+                    <textarea id="form-desc-zh" rows="3" placeholder="填写小游戏的中文介绍、关卡说明、规则特点..."
+                              class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition resize-none"></textarea>
+                </div>
+            </div>
+
+            <!-- 3. 加载模式与文件自动托管 -->
+            <div class="bg-gray-900 border border-gray-800/80 p-6 rounded-2xl space-y-4">
+                <h3 class="text-xs font-black tracking-wider text-indigo-400 uppercase mb-2 flex items-center gap-1.5">
+                    <span>⚙️</span> <span data-zh="H5 小游戏资源包配置" data-en="H5 Package Deploy Settings">H5 小游戏资源包配置</span>
+                </h3>
+                
+                <!-- 加载模式选择器 -->
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="p-4 bg-gray-950 border border-indigo-500/40 text-indigo-400 rounded-xl flex items-center gap-3 cursor-pointer select-none transition" id="mode-zip-label">
+                        <input type="radio" name="load_mode" value="zip" checked onchange="toggleLoadMode('zip')" class="accent-indigo-500">
+                        <div>
+                            <p class="text-xs font-bold" data-zh="上传并解压 ZIP 托管包" data-en="Host ZIP Package">上传并解压 ZIP 托管包</p>
+                            <p class="text-[9px] text-gray-500 mt-0.5" data-zh="本地安全托管，极速缓存" data-en="Local automatic extract & cache">本地安全托管，极速缓存</p>
+                        </div>
+                    </label>
+                    <label class="p-4 bg-gray-950 border border-gray-800 text-gray-400 hover:text-white rounded-xl flex items-center gap-3 cursor-pointer select-none transition" id="mode-url-label">
+                        <input type="radio" name="load_mode" value="url" onchange="toggleLoadMode('url')" class="accent-indigo-500">
+                        <div>
+                            <p class="text-xs font-bold" data-zh="直接使用 H5 外链 URL" data-en="External Web Link URL">直接使用 H5 外链 URL</p>
+                            <p class="text-[9px] text-gray-500 mt-0.5" data-zh="嵌入第三方 H5 原生运行链接" data-en="Link directly to iframe game url">嵌入第三方 H5 原生运行链接</p>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- 模式1：ZIP 上传 -->
+                <div id="load-mode-zip" class="space-y-3">
+                    <label class="block text-xs font-semibold text-gray-400 mb-1" data-zh="拖放 H5 游戏压缩包至此" data-en="Drag & Drop H5 Game ZIP file">拖放 H5 游戏压缩包至此</label>
+                    <div id="drop-zone" class="border-2 border-dashed border-gray-800 hover:border-indigo-500/50 bg-gray-950 p-8 rounded-xl text-center cursor-pointer transition">
+                        <input type="file" id="zip-file-input" accept=".zip" class="hidden" onchange="handleZipUpload(event)">
+                        <svg class="w-8 h-8 text-indigo-500 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"></path></svg>
+                        <p class="text-xs font-semibold text-gray-300" data-zh="将 H5 游戏打包的 ZIP 文件拖放到此处，或点击浏览" data-en="Drag & drop H5 ZIP package here, or click to browse">将 H5 游戏打包的 ZIP 文件拖放到此处，或点击浏览</p>
+                        <p class="text-[10px] text-gray-500 mt-1" data-zh="系统在后台会自动提取，压缩包内需在根目录包含 index.html" data-en="System will auto uncompress; ZIP root must contain index.html">系统在后台会自动提取，压缩包内需在根目录包含 index.html</p>
+                    </div>
+                    <!-- ZIP 解析展示 -->
+                    <div id="zip-preview" class="hidden p-4 bg-gray-950 border border-gray-800 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-indigo-400 font-bold" id="zip-name">game.zip</span>
+                            <span class="text-green-500 font-semibold flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span data-zh="主入口 index.html 验证有效" data-en="index.html validated">主入口 index.html 验证有效</span>
+                            </span>
+                        </div>
+                        <div class="h-1 w-full bg-gray-900 rounded-full overflow-hidden">
+                            <div class="h-full bg-green-500 w-full animate-pulse"></div>
+                        </div>
+                        <p class="text-[10px] text-gray-500">
+                            <span data-zh="静态资源托管及自适应分流路径" data-en="Auto Hosted Path">静态资源托管及自适应分流路径</span>: 
+                            <span class="text-indigo-400 font-mono" id="zip-mapped-url">/games/custom-game/index.html</span>
+                        </p>
+                        <div class="text-[10px] bg-gray-900 p-3 rounded font-mono text-gray-500 max-h-32 overflow-y-auto" id="zip-files-list">
+                            <!-- 压缩包内文件树 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 模式2：URL 外链 -->
+                <div id="load-mode-url" class="space-y-1.5 hidden">
+                    <label class="block text-xs font-semibold text-gray-400" data-zh="第三方 H5 游戏外链 URL" data-en="External H5 Play Link URL">第三方 H5 游戏外链 URL</label>
+                    <input type="url" id="form-url" placeholder="https://m.h5play.com/demo/cyber-surfer"
+                           class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition">
+                    <p class="text-[10px] text-gray-500" data-zh="以 https:// 开头的安全网页链接，系统会自动配置沙箱安全规则以防劫持" data-en="Must start with https://, system will apply secure sandbox attributes to iframe">以 https:// 开头的安全网页链接，系统会自动配置沙箱安全规则以防劫持</p>
+                </div>
+            </div>
+
+            <!-- 4. 美术物料配置 -->
+            <div class="bg-gray-900 border border-gray-800/80 p-6 rounded-2xl space-y-4">
+                <h3 class="text-xs font-black tracking-wider text-indigo-400 uppercase mb-2 flex items-center gap-1.5">
+                    <span>🖼️</span> <span data-zh="视觉宣传物料配置 (AdSense 规范)" data-en="Visual Material Config">视觉宣传物料配置 (AdSense 规范)</span>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1.5" data-zh="游戏封面海报/缩略图 URL *" data-en="Game Poster / Thumbnail URL *">游戏封面海报/缩略图 URL *</label>
+                        <input type="url" id="form-image" required placeholder="https://images.unsplash.com/photo-..."
+                               class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition">
+                        <p class="text-[9px] text-gray-500 mt-1" data-zh="长宽比建议 1:1 或 16:9，用于门户首页多网格渲染" data-en="Square or widescreen aspect ratio suggested, used on grids">长宽比建议 1:1 或 16:9，用于门户首页多网格渲染</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1.5" data-zh="静音宣传 MP4 视频预览 URL *" data-en="Game Muted MP4 Promo URL *">静音宣传 MP4 视频预览 URL *</label>
+                        <input type="url" id="form-video" required placeholder="https://assets.mixkit.co/videos/..."
+                               class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition">
+                        <p class="text-[9px] text-gray-500 mt-1" data-zh="必须为静音、循环、轻量 MP4 格式，用于鼠标悬浮自动无缝播放" data-en="Must be a muted, loop, lightweight MP4 file for silent auto plays">必须为静音、循环、轻量 MP4 格式，用于鼠标悬浮自动无缝播放</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. 提交按钮 -->
+            <div class="pt-4 flex items-center justify-end gap-4">
+                <a href="admin.html" class="px-6 py-3 bg-gray-900 hover:bg-gray-800 text-sm font-semibold rounded-xl text-gray-300 transition" data-zh="取消编辑" data-en="Cancel">取消编辑</a>
+                <button type="submit" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-sm font-bold rounded-xl text-white shadow-lg shadow-indigo-600/30 active:scale-95 transition" id="publish-btn" data-zh="确认发布上线 🚀" data-en="Publish Online 🚀">确认发布上线 🚀</button>
+            </div>
+
+        </form>
+    </main>
+
+    <!-- ======== 极简弹窗提示 (Toast) ======== -->
+    <div id="toast" class="fixed bottom-6 right-6 px-5 py-3 bg-indigo-600 text-white border border-indigo-500 rounded-2xl text-xs font-bold shadow-2xl transition duration-300 transform translate-y-24 opacity-0 z-50 flex items-center gap-2">
+        <span id="toast-message">操作成功 / Action Completed</span>
+    </div>
+
+    <!-- ======== 脚本交互区 ======== -->
+    <script>
+        let currentLang = localStorage.getItem("h5play_lang") || "zh";
+
+        function updateUI() {
+            // 更新静态翻译
+            document.querySelectorAll('[data-zh]').forEach(el => {
+                el.innerText = currentLang === 'zh' ? el.getAttribute('data-zh') : el.getAttribute('data-en');
+            });
+            document.getElementById('lang-btn').innerText = currentLang === 'zh' ? 'English' : '中文';
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === "zh" ? "en" : "zh";
+            localStorage.setItem("h5play_lang", currentLang);
+            updateUI();
+        }
+
+        // 数据库读写
+        const INITIAL_DB = [
+            {
+                id: "cyber-surfer",
+                title_en: "Cyber Surfer 2088",
+                title_zh: "赛博冲浪者 2088",
+                category: "action",
+                image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
+                video: "https://assets.mixkit.co/videos/preview/mixkit-gaming-lead-moving-forward-with-a-gun-40019-large.mp4",
+                url: "https://m.h5play.com/demo/cyber-surfer",
+                players: "124K",
+                rating: "4.8",
+                desc_en: "An intense high-speed cybernetic endless runner. Jump over neon block grids, slice obstacles with energy blades, and race to cyberpunk beats.",
+                desc_zh: "一款极具速度感的科幻风无限跑酷游戏。在霓虹流光中跃过障碍、挥舞光刃斩断阻碍，伴随着动感节奏冲向赛博之城。"
+            }
+        ];
+
+        function getGames() {
+            return JSON.parse(localStorage.getItem("h5play_games")) || INITIAL_DB;
+        }
+
+        function saveGames(games) {
+            localStorage.setItem("h5play_games", JSON.stringify(games));
+        }
+
+        // H5 资源模式切换
+        function toggleLoadMode(mode) {
+            const zipSec = document.getElementById("load-mode-zip");
+            const urlSec = document.getElementById("load-mode-url");
+            const zipLbl = document.getElementById("mode-zip-label");
+            const urlLbl = document.getElementById("mode-url-label");
+
+            if (mode === 'zip') {
+                zipSec.classList.remove("hidden");
+                urlSec.classList.add("hidden");
+                zipLbl.classList.add("border-indigo-500/40", "text-indigo-400");
+                zipLbl.classList.remove("border-gray-800", "text-gray-400");
+                urlLbl.classList.remove("border-indigo-500/40", "text-indigo-400");
+                urlLbl.classList.add("border-gray-800", "text-gray-400");
+                document.getElementById("form-url").required = false;
+            } else {
+                zipSec.classList.add("hidden");
+                urlSec.classList.remove("hidden");
+                urlLbl.classList.add("border-indigo-500/40", "text-indigo-400");
+                urlLbl.classList.remove("border-gray-800", "text-gray-400");
+                zipLbl.classList.remove("border-indigo-500/40", "text-indigo-400");
+                zipLbl.classList.add("border-gray-800", "text-gray-400");
+                document.getElementById("form-url").required = true;
+            }
+        }
+
+        // ======== ZIP 文件拖放与扫描处理 ========
+        const dropZone = document.getElementById("drop-zone");
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("border-indigo-500");
+        });
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.classList.remove("border-indigo-500");
+        });
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("border-indigo-500");
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].name.endsWith('.zip')) {
+                parseZip(files[0]);
+            } else {
+                showToast(currentLang === 'zh' ? "请上传合规的 H5 .zip 格式打包文件！" : "Please drop a valid .zip H5 archive!", true);
+            }
+        });
+
+        dropZone.addEventListener("click", () => {
+            document.getElementById("zip-file-input").click();
+        });
+
+        function handleZipUpload(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                parseZip(files[0]);
+            }
+        }
+
+        function parseZip(file) {
+            showToast(currentLang === 'zh' ? "正在验证并自动提取 H5 托管文件树..." : "Scanning and verifying ZIP files...", false);
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const arrayBuffer = e.target.result;
+                JSZip.loadAsync(arrayBuffer).then(function(zip) {
+                    let hasIndex = false;
+                    const filesList = [];
+                    
+                    zip.forEach(function (relativePath, zipEntry) {
+                        filesList.push(relativePath);
+                        if (relativePath.toLowerCase() === 'index.html' || relativePath.toLowerCase().endsWith('/index.html')) {
+                            hasIndex = true;
+                        }
+                    });
+
+                    if (!hasIndex) {
+                        showToast(currentLang === 'zh' ? "提取校验失败：压缩包根目录下未找到 index.html 主入口文件！" : "Check failed: index.html entry file not found at ZIP root!", true);
+                        return;
+                    }
+
+                    // 填充表单
+                    document.getElementById("zip-name").innerText = file.name;
+                    const gameSlug = file.name.replace(".zip", "").toLowerCase().replace(/[^a-z0-9]/g, "-");
+                    const targetUrl = `/games/${gameSlug}/index.html`;
+                    document.getElementById("zip-mapped-url").innerText = targetUrl;
+                    document.getElementById("form-url").value = targetUrl;
+
+                    // 渲染文件列表
+                    const filesTree = document.getElementById("zip-files-list");
+                    filesTree.innerHTML = `<p class="text-indigo-400 font-bold mb-1">📂 [root] /</p>` + 
+                        filesList.slice(0, 30).map(f => `  📄 ${f}`).join("<br>") + 
+                        (filesList.length > 30 ? `<br>  ... (以及其余 ${filesList.length - 30} 个静态资源文件已自动托管缓存)` : "");
+
+                    document.getElementById("zip-preview").classList.remove("hidden");
+                    showToast(currentLang === 'zh' ? "H5游戏包解析成功！文件树映射已自动部署" : "H5 package validated & hosted successfully!", false);
+
+                    // 默认起名字
+                    if (!document.getElementById("form-title-en").value) {
+                        document.getElementById("form-title-en").value = file.name.replace(".zip", "").replace(/-/g, " ");
+                    }
+                    if (!document.getElementById("form-title-zh").value) {
+                        document.getElementById("form-title-zh").value = file.name.replace(".zip", "");
+                    }
+                }).catch(function(err) {
+                    showToast(currentLang === 'zh' ? "解压 H5 文件失败，压缩包可能损坏" : "Failed to load ZIP archive", true);
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 提交表单
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById("edit-id").value;
+            const titleEn = document.getElementById("form-title-en").value;
+            const titleZh = document.getElementById("form-title-zh").value;
+            const category = document.getElementById("form-category").value;
+            const rating = document.getElementById("form-rating").value;
+            const players = document.getElementById("form-players").value;
+            const descEn = document.getElementById("form-desc-en").value;
+            const descZh = document.getElementById("form-desc-zh").value;
+            const image = document.getElementById("form-image").value;
+            const video = document.getElementById("form-video").value;
+            
+            const isZip = document.querySelector('input[name="load_mode"]:checked').value === 'zip';
+            const url = document.getElementById("form-url").value || `https://m.h5play.com/demo/${titleEn.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
+
+            const games = getGames();
+
+            if (editId) {
+                // 编辑状态
+                const idx = games.findIndex(g => g.id === editId);
+                if (idx !== -1) {
+                    games[idx] = {
+                        id: editId,
+                        title_en: titleEn,
+                        title_zh: titleZh,
+                        category: category,
+                        image: image,
+                        video: video,
+                        url: url,
+                        players: players,
+                        rating: rating,
+                        desc_en: descEn,
+                        desc_zh: descZh
+                    };
+                }
+            } else {
+                // 新增状态
+                const newId = titleEn.toLowerCase().replace(/[^a-z0-9]/g, "-") || `game-${Date.now()}`;
+                if (games.some(g => g.id === newId)) {
+                    showToast(currentLang === 'zh' ? "该游戏英文标识已存在！请修改英文标题" : "Game ID already exists!", true);
+                    return;
+                }
+                games.unshift({
+                    id: newId,
+                    title_en: titleEn,
+                    title_zh: titleZh,
+                    category: category,
+                    image: image,
+                    video: video,
+                    url: url,
+                    players: players,
+                    rating: rating,
+                    desc_en: descEn,
+                    desc_zh: descZh
+                });
+            }
+
+            saveGames(games);
+
+            // 隐藏表单，展示成功页面卡片
+            document.getElementById("game-form").classList.add("hidden");
+            document.getElementById("success-card").classList.remove("hidden");
+            document.getElementById("success-play-link").href = `detail.html?id=${editId || titleEn.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
+            
+            if (editId) {
+                document.getElementById("success-title").setAttribute("data-zh", "游戏配置更新成功！");
+                document.getElementById("success-title").setAttribute("data-en", "Game Config Updated!");
+                document.getElementById("success-desc").setAttribute("data-zh", "您对该游戏的配置和元数据修改已经同步上线。");
+                document.getElementById("success-desc").setAttribute("data-en", "Your updates have been synchronised and deployed.");
+            } else {
+                document.getElementById("success-title").setAttribute("data-zh", "新游戏部署发布成功！");
+                document.getElementById("success-title").setAttribute("data-en", "H5 Game Hosted Successfully!");
+                document.getElementById("success-desc").setAttribute("data-zh", "全新游戏包已发布到前台热门榜单中，随时可玩。");
+                document.getElementById("success-desc").setAttribute("data-en", "The new game package is now live on the portal.");
+            }
+
+            updateUI();
+            showToast(currentLang === 'zh' ? "发布数据同步成功！" : "Database synchronized!", false);
+            // 分发 storage 事件
+            window.dispatchEvent(new Event("storage"));
+        }
+
+        // 初始化加载（判断是编辑还是新增）
+        window.onload = () => {
+            updateUI();
+
+            const params = new URLSearchParams(window.location.search);
+            const editId = params.get("id");
+
+            if (editId) {
+                // 编辑模式
+                document.getElementById("header-action-type").setAttribute("data-zh", "编辑游戏配置");
+                document.getElementById("header-action-type").setAttribute("data-en", "Edit Game");
+                document.getElementById("page-title").setAttribute("data-zh", "编辑小游戏属性");
+                document.getElementById("page-title").setAttribute("data-en", "Edit Game Attributes");
+                document.getElementById("game-id-indicator").innerText = `ID: ${editId.toUpperCase()}`;
+                document.getElementById("publish-btn").setAttribute("data-zh", "保存配置修改 💾");
+                document.getElementById("publish-btn").setAttribute("data-en", "Save Changes 💾");
+
+                const games = getGames();
+                const game = games.find(g => g.id === editId);
+                if (game) {
+                    document.getElementById("edit-id").value = game.id;
+                    document.getElementById("form-title-en").value = game.title_en;
+                    document.getElementById("form-title-zh").value = game.title_zh;
+                    document.getElementById("form-category").value = game.category;
+                    document.getElementById("form-rating").value = game.rating;
+                    document.getElementById("form-players").value = game.players;
+                    document.getElementById("form-desc-en").value = game.desc_en;
+                    document.getElementById("form-desc-zh").value = game.desc_zh;
+                    document.getElementById("form-image").value = game.image;
+                    document.getElementById("form-video").value = game.video;
+                    document.getElementById("form-url").value = game.url;
+
+                    const isZip = !game.url.startsWith("http");
+                    toggleLoadMode(isZip ? "zip" : "url");
+                    document.querySelectorAll('input[name="load_mode"]').forEach(radio => {
+                        if (radio.value === (isZip ? "zip" : "url")) radio.checked = true;
+                    });
+
+                    if (isZip) {
+                        document.getElementById("zip-preview").classList.remove("hidden");
+                        document.getElementById("zip-name").innerText = "hosted-resources.zip";
+                        document.getElementById("zip-mapped-url").innerText = game.url;
+                        document.getElementById("zip-files-list").innerHTML = `📄 index.html (主入口已缓存部署)<br>📄 assets/game.js<br>📄 assets/resource.json`;
+                    }
+                }
+            } else {
+                // 新增模式
+                toggleLoadMode("zip");
+            }
+
+            updateUI();
+        };
+
+        // Toast
+        function showToast(message, isError = false) {
+            const toast = document.getElementById("toast");
+            const msgSpan = document.getElementById("toast-message");
+            msgSpan.innerText = message;
+
+            if (isError) {
+                toast.classList.remove("bg-indigo-600", "border-indigo-500");
+                toast.classList.add("bg-red-600", "border-red-500");
+            } else {
+                toast.classList.add("bg-indigo-600", "border-indigo-500");
+                toast.classList.remove("bg-red-600", "border-red-500");
+            }
+
+            toast.classList.remove("translate-y-24", "opacity-0");
+            toast.classList.add("translate-y-0", "opacity-100");
+
+            setTimeout(() => {
+                toast.classList.remove("translate-y-0", "opacity-100");
+                toast.classList.add("translate-y-24", "opacity-0");
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
