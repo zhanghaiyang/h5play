@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H5Play - Admin Dashboard / 管理后台</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            950: '#030712',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col md:flex-row">
+
+    <!-- 侧边栏/移动端底部导航 -->
+    <aside class="w-full md:w-64 bg-gray-900 border-b md:border-b-0 md:border-r border-gray-800 flex flex-col justify-between shrink-0">
+        <div>
+            <!-- Logo 区 -->
+            <div class="p-6 border-b border-gray-800 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black text-lg text-white shadow-lg shadow-indigo-600/30">
+                        H
+                    </div>
+                    <span class="text-lg font-bold tracking-wider text-white">H5Play <span class="text-xs text-indigo-400 font-normal">Console</span></span>
+                </div>
+                <!-- 语言切换 -->
+                <button onclick="toggleLang()" id="lang-btn" class="text-xs px-2.5 py-1 bg-gray-800 hover:bg-gray-700 active:scale-95 border border-gray-700 rounded-md transition font-medium">
+                    English
+                </button>
+            </div>
+            <!-- 导航菜单 -->
+            <nav class="p-4 space-y-1.5">
+                <button onclick="switchTab('games')" id="tab-btn-games" class="w-full flex items-center gap-3 px-4 py-3 bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 rounded-xl text-sm font-semibold transition text-left">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path></svg>
+                    <span data-zh="游戏管理" data-en="Games Manager">游戏管理</span>
+                </button>
+                <button onclick="switchTab('carousel')" id="tab-btn-carousel" class="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-xl text-sm font-medium transition text-left">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v12a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M4 9h16M8 14h2M12 14h4"></path></svg>
+                    <span data-zh="轮播图配置" data-en="Banner Carousel">轮播图配置</span>
+                </button>
+                <a href="index.html" class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-xl text-sm font-medium transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    <span data-zh="返回前台" data-en="Portal Home">返回前台</span>
+                </a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-gray-800 text-center text-[10px] text-gray-500 hidden md:block">
+            <span>© 2026 H5Play Console</span>
+        </div>
+    </aside>
+
+    <!-- 主操作区 -->
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto space-y-6">
+        <!-- Tab 1: 游戏仓库管理 -->
+        <div id="tab-content-games" class="space-y-6">
+            <!-- 头部信息 -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight" data-zh="H5小游戏控制台" data-en="H5 Game Dashboard">H5小游戏控制台</h1>
+                    <p class="text-sm text-gray-400 mt-1" data-zh="管理、上传、托管您的 H5 游戏压缩包或外链 URL" data-en="Manage, upload and host your H5 ZIP packages or external URLs">管理、上传、托管您的 H5 游戏压缩包或外链 URL</p>
+                </div>
+                <div>
+                    <a href="publish.html" target="_blank" class="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-sm font-bold text-white rounded-xl shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+                        <span data-zh="发布新游戏" data-en="Publish New Game">发布新游戏</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 统计面板 -->
+            <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- 统计1 -->
+                <div class="p-4 bg-gray-900 border border-gray-800/80 rounded-2xl flex flex-col justify-between">
+                    <span class="text-xs text-gray-400 font-medium" data-zh="总游戏数" data-en="Total Games">总游戏数</span>
+                    <div class="flex items-baseline gap-2 mt-2">
+                        <span id="stat-total-games" class="text-2xl md:text-3xl font-black text-white">12</span>
+                        <span class="text-[10px] text-green-500 font-bold bg-green-500/10 px-1.5 py-0.5 rounded" data-zh="正常" data-en="Active">正常</span>
+                    </div>
+                </div>
+                <!-- 统计2 -->
+                <div class="p-4 bg-gray-900 border border-gray-800/80 rounded-2xl flex flex-col justify-between">
+                    <span class="text-xs text-gray-400 font-medium" data-zh="总播放量" data-en="Total Plays">总播放量</span>
+                    <div class="flex items-baseline gap-2 mt-2">
+                        <span class="text-2xl md:text-3xl font-black text-white">1.3M+</span>
+                        <span class="text-[10px] text-indigo-400 font-bold bg-indigo-500/10 px-1.5 py-0.5 rounded">Realtime</span>
+                    </div>
+                </div>
+                <!-- 统计3 -->
+                <div class="p-4 bg-gray-900 border border-gray-800/80 rounded-2xl flex flex-col justify-between">
+                    <span class="text-xs text-gray-400 font-medium" data-zh="托管服务器存储" data-en="Hosting Storage">托管服务器存储</span>
+                    <div class="flex items-baseline gap-2 mt-2">
+                        <span id="stat-storage" class="text-2xl md:text-3xl font-black text-white">14.2 MB</span>
+                        <span class="text-[10px] text-gray-400 font-normal">/ 100 MB</span>
+                    </div>
+                </div>
+                <!-- 统计4 -->
+                <div class="p-4 bg-gray-900 border border-gray-800/80 rounded-2xl flex flex-col justify-between">
+                    <span class="text-xs text-gray-400 font-medium" data-zh="SEO 收录索引页" data-en="SEO Indexed Pages">SEO 收录索引页</span>
+                    <div class="flex items-baseline gap-2 mt-2">
+                        <span class="text-2xl md:text-3xl font-black text-white">24</span>
+                        <span class="text-[10px] text-green-500 font-bold bg-green-500/10 px-1.5 py-0.5 rounded">100%</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 游戏库表格 -->
+            <section class="bg-gray-900 border border-gray-800/80 rounded-2xl overflow-hidden shadow-xl">
+                <div class="p-6 border-b border-gray-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                        <span data-zh="游戏仓库列表" data-en="Games Repository">游戏仓库列表</span>
+                    </h2>
+                    <!-- 搜索过滤 -->
+                    <div class="relative w-full sm:w-64">
+                        <input type="text" id="search-input" oninput="filterGamesTable()" placeholder="搜索游戏... / Search..." 
+                               class="w-full px-4 py-2 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-xs text-white placeholder-gray-500 outline-none transition">
+                    </div>
+                </div>
+
+                <!-- 自适应响应式表格 -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-950/40 text-xs text-gray-400 border-b border-gray-800">
+                                <th class="p-4 font-bold" data-zh="游戏信息" data-en="Game Info">游戏信息</th>
+                                <th class="p-4 font-bold" data-zh="分类" data-en="Category">分类</th>
+                                <th class="p-4 font-bold" data-zh="类型/源链接" data-en="Type / URL">类型/源链接</th>
+                                <th class="p-4 font-bold" data-zh="热度与评分" data-en="Stats & Rating">热度与评分</th>
+                                <th class="p-4 font-bold text-right" data-zh="操作" data-en="Actions">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="games-table-body" class="divide-y divide-gray-800 text-sm">
+                            <!-- JS 动态注入 -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 访客 IP 记录与地理分析模块 / IP Logs & GEO Analytics -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- 左侧：地理分布比例 (GEO Analysis) -->
+                <div class="lg:col-span-1 bg-gray-900 border border-gray-800/80 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                            <span data-zh="客源地理分布分析" data-en="GEO Distribution Analysis">客源地理分布分析</span>
+                        </h2>
+                        <div id="geo-distribution-list" class="space-y-4">
+                            <!-- JS 动态注入国家 and 百分比条 -->
+                        </div>
+                    </div>
+                    <div class="text-[10px] text-gray-500 border-t border-gray-800/60 pt-4 mt-4" data-zh="提示：基于近 200 条访客日志进行实时客源分析，用以向高频地区倾斜带宽或扩充资源。" data-en="Tip: Real-time traffic analysis based on last 200 logs. Helps optimize bandwidth or expand games for high-traffic regions.">
+                        提示：基于近 200 条访客日志进行实时客源分析，用以向高频地区倾斜带宽或扩充资源。
+                    </div>
+                </div>
+
+                <!-- 右侧：最近访问日志 (Live Logs) -->
+                <div class="lg:col-span-2 bg-gray-900 border border-gray-800/80 rounded-2xl overflow-hidden shadow-xl flex flex-col">
+                    <div class="p-6 border-b border-gray-800 flex items-center justify-between">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span data-zh="实时访问日志记录" data-en="Live Visitor Logs">实时访问日志记录</span>
+                        </h2>
+                        <div class="flex items-center gap-2">
+                            <button onclick="resetMockLogs()" class="px-2.5 py-1 text-[10px] font-semibold bg-gray-800 hover:bg-gray-700 active:scale-95 border border-gray-700 text-gray-300 rounded-lg transition" data-zh="恢复模拟日志" data-en="Reset Mock Logs">恢复模拟日志</button>
+                            <button onclick="clearLogs()" class="px-2.5 py-1 text-[10px] font-semibold bg-red-950/40 hover:bg-red-900/30 active:scale-95 border border-red-500/20 text-red-400 rounded-lg transition" data-zh="清空日志" data-en="Clear Logs">清空日志</button>
+                        </div>
+                    </div>
+
+                    <!-- 滚动日志表格层 -->
+                    <div class="overflow-x-auto flex-1 max-h-[350px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse font-sans">
+                            <thead>
+                                <tr class="bg-gray-950/40 text-[10px] text-gray-400 border-b border-gray-800">
+                                    <th class="p-3 font-bold" data-zh="时间" data-en="Time">时间</th>
+                                    <th class="p-3 font-bold" data-zh="IP 地址" data-en="IP Address">IP 地址</th>
+                                    <th class="p-3 font-bold" data-zh="国家/地区" data-en="Country / Region">国家/地区</th>
+                                    <th class="p-3 font-bold" data-zh="设备" data-en="Device">设备</th>
+                                    <th class="p-3 font-bold" data-zh="访问页面" data-en="Page">访问页面</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ip-logs-table-body" class="divide-y divide-gray-800/60 text-xs">
+                                <!-- JS 动态注入 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Tab 2: 轮播图配置 -->
+        <div id="tab-content-carousel" class="hidden space-y-6">
+            <!-- 头部信息 -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight" data-zh="首页轮播图配置" data-en="Banner Carousel Editor">首页轮播图配置</h1>
+                    <p class="text-sm text-gray-400 mt-1" data-zh="自定义首页首屏主打推荐大图，支持图片或视频背景切换、实时重排序与保存" data-en="Customize the homepage hero banners. Supports image/video background toggle, sorting, and live saving.">自定义首页首屏主打推荐大图，支持图片或视频背景切换、实时重排序与保存</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="resetCarouselToDefault()" class="px-4 py-2.5 bg-gray-900 border border-gray-800 hover:bg-gray-800 active:scale-95 text-xs font-bold text-gray-300 hover:text-white rounded-xl transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3 3 3m-3-3v12"></path></svg>
+                        <span data-zh="重置为精品预设" data-en="Reset to Presets">重置为精品预设</span>
+                    </button>
+                    <button onclick="addNewCarouselSlide()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-xs font-bold text-white rounded-xl shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+                        <span data-zh="添加幻灯片" data-en="Add Slide">添加幻灯片</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 可视化配置大卡片容器 -->
+            <div id="carousel-editor-container" class="space-y-4">
+                <!-- JS 动态灌入卡片 -->
+            </div>
+
+            <!-- 保存控制条 -->
+            <div class="flex justify-end pt-4">
+                <button onclick="saveCarouselConfig()" class="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-sm font-bold text-white rounded-xl shadow-xl shadow-indigo-600/30 transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                    <span data-zh="保存全部配置" data-en="Save All Changes">保存全部配置</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- ======== 极简弹窗提示 (Toast) ======== -->
+    <div id="toast" class="fixed bottom-6 right-6 px-5 py-3 bg-indigo-600 text-white border border-indigo-500 rounded-2xl text-xs font-bold shadow-2xl transition duration-300 transform translate-y-24 opacity-0 z-50 flex items-center gap-2">
+        <span id="toast-message">操作成功 / Action Completed</span>
+    </div>
+
+    <!-- ======== 脚本交互区 ======== -->
+    <script>
+        // 1. 中英文字典配置
+        let currentLang = localStorage.getItem("h5play_lang") || "zh";
+        let activeTab = "games"; // 当前激活的 Tab
+
+        function switchTab(tabId) {
+            activeTab = tabId;
+            const tabBtnGames = document.getElementById("tab-btn-games");
+            const tabBtnCarousel = document.getElementById("tab-btn-carousel");
+            const tabContentGames = document.getElementById("tab-content-games");
+            const tabContentCarousel = document.getElementById("tab-content-carousel");
+
+            if (tabId === "games") {
+                // 切换按钮高亮
+                tabBtnGames.className = "w-full flex items-center gap-3 px-4 py-3 bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 rounded-xl text-sm font-semibold transition text-left";
+                tabBtnCarousel.className = "w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-xl text-sm font-medium transition text-left";
+                // 切换内容区域
+                tabContentGames.classList.remove("hidden");
+                tabContentCarousel.classList.add("hidden");
+            } else {
+                tabBtnCarousel.className = "w-full flex items-center gap-3 px-4 py-3 bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 rounded-xl text-sm font-semibold transition text-left";
+                tabBtnGames.className = "w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-xl text-sm font-medium transition text-left";
+                tabContentCarousel.classList.remove("hidden");
+                tabContentGames.classList.add("hidden");
+                // 每次切换到轮播图 Tab，渲染编辑器
+                renderCarouselEditor();
+            }
+        }
+
+        function updateAdminUI() {
+            // 更新静态翻译
+            document.querySelectorAll('[data-zh]').forEach(el => {
+                el.innerText = currentLang === 'zh' ? el.getAttribute('data-zh') : el.getAttribute('data-en');
+            });
+            // 按钮文字
+            document.getElementById('lang-btn').innerText = currentLang === 'zh' ? 'English' : '中文';
+            // Placeholder 更新
+            const search = document.getElementById('search-input');
+            if (search) search.placeholder = currentLang === 'zh' ? '搜索游戏标题或分类...' : 'Search games...';
+
+            renderGamesTable();
+            renderIPLogs();
+            if (activeTab === "carousel") {
+                renderCarouselEditor();
+            }
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === "zh" ? "en" : "zh";
+            localStorage.setItem("h5play_lang", currentLang);
+            updateAdminUI();
+            // 同时分发前台同步事件
+            window.dispatchEvent(new Event("storage"));
+        }
+
+        // 2. 数据库读写
+        const INITIAL_DB = [
+            {
+                id: "cyber-surfer",
+                title_en: "Cyber Surfer 2088",
+                title_zh: "赛博冲浪者 2088",
+                category: "action",
+                image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
+                video: "https://assets.mixkit.co/videos/preview/mixkit-gaming-lead-moving-forward-with-a-gun-40019-large.mp4",
+                url: "https://m.h5play.com/demo/cyber-surfer",
+                players: "124K",
+                rating: "4.8",
+                desc_en: "An intense high-speed cybernetic endless runner. Jump over neon block grids, slice obstacles with energy blades, and race to cyberpunk beats.",
+                desc_zh: "一款极具速度感的科幻风无限跑酷游戏。在霓虹流光中跃过障碍、挥舞光刃斩断阻碍，伴随着动感节奏冲向赛博之城。"
+            },
+            {
+                id: "tile-matching",
+                title_en: "Zen Block Matching",
+                title_zh: "禅意方块消消乐",
+                category: "puzzle",
+                image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&w=600&q=80",
+                video: "https://assets.mixkit.co/videos/preview/mixkit-hands-of-a-man-playing-a-game-on-a-smartphone-40040-large.mp4",
+                url: "https://m.h5play.com/demo/zen-matching",
+                players: "89K",
+                rating: "4.6",
+                desc_en: "Clear the board by matching beautiful hand-crafted wooden tiles. Pure tactical puzzle gameplay designed to relieve anxiety.",
+                desc_zh: "通过配对手工质感的禅意木块来清空棋盘。纯粹的策略消除玩法，旨在帮助您放松身心、缓解压力。"
+            },
+            {
+                id: "retro-drift",
+                title_en: "Retro Neon Drift",
+                title_zh: "复古霓虹漂移",
+                category: "sports",
+                image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80",
+                video: "https://assets.mixkit.co/videos/preview/mixkit-car-drifting-in-an-arcade-style-retro-game-40101-large.mp4",
+                url: "https://m.h5play.com/demo/retro-drift",
+                players: "210K",
+                rating: "4.9",
+                desc_en: "Arcade-style retro racing with realistic drifting physics. Beat lap times, unlock iconic retro cars, and listen to synthwave synth music.",
+                desc_zh: "街机风格的复古赛车游戏，拥有真实的漂移物理引擎。挑战单圈记录、解锁复古跑车，享受极速狂飙。"
+            }
+        ];
+
+        // 默认精品大图轮播预设（5张）
+        const PREMIUM_CAROUSEL_PRESETS = [
+            {
+                id: "cyber-surfer",
+                title_zh: "赛博冲浪者 2088",
+                title_en: "Cyber Surfer 2088",
+                desc_zh: "一款极具速度感的科幻风无限跑酷游戏。在霓虹流光中跃过障碍、挥舞光刃斩断阻碍，伴随着动感节奏冲向赛博之城。",
+                desc_en: "An intense high-speed cybernetic endless runner. Jump over neon block grids, slice obstacles with energy blades, and race to cyberpunk beats.",
+                image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
+                video: "https://assets.mixkit.co/videos/preview/mixkit-gaming-lead-moving-forward-with-a-gun-40019-large.mp4",
+                type: "video"
+            },
+            {
+                id: "retro-drift",
+                title_zh: "复古霓虹漂移",
+                title_en: "Retro Neon Drift",
+                desc_zh: "街机风格的复古赛车游戏，拥有真实的漂移物理引擎。挑战单圈记录、解锁复古跑车，享受极速狂飙。",
+                desc_en: "Arcade-style retro racing with realistic drifting physics. Beat lap times, unlock iconic retro cars, and listen to synthwave synth music.",
+                image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
+                video: "https://assets.mixkit.co/videos/preview/mixkit-car-drifting-in-an-arcade-style-retro-game-40101-large.mp4",
+                type: "video"
+            },
+            {
+                id: "pixel-dungeon",
+                title_zh: "像素地牢大师",
+                title_en: "Pixel Rogue Dungeon",
+                desc_zh: "探索无尽像素地牢，斩妖除魔，收集神秘圣物，不断升级并解锁传说中的专属职业。",
+                desc_en: "A challenging classic pixel rogue-like. Delve deep, fight monsters, find chest items, and level up to unlock unique classes.",
+                image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
+                video: "",
+                type: "image"
+            },
+            {
+                id: "fruit-match",
+                title_zh: "水果切切狂欢",
+                title_en: "Fruit Splat Frenzy",
+                desc_zh: "切碎迎面飞来的多汁水果，避开危险的炸弹，连击打出超高得分。畅享极致丝滑的解压快感。",
+                desc_en: "Slice juicy flying fruits, avoid explosive bombs, and perform multi-slash combos in this satisfying arcade action.",
+                image: "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?auto=format&fit=crop&w=1200&q=80",
+                video: "https://assets.mixkit.co/videos/preview/mixkit-hand-holding-a-smartphone-playing-a-game-40045-large.mp4",
+                type: "video"
+            },
+            {
+                id: "kart-fever",
+                title_zh: "微型卡丁车大赛",
+                title_en: "Mini Kart Racing Pro",
+                desc_zh: "在色彩斑斓的玩具跑道上漂移过弯，收集奇妙道具轰翻对手。支持双人同屏游玩的派对极速赛车。",
+                desc_en: "Drift through colorful toy courses, pick up explosive powerups, and target your friends in extreme arcade racing.",
+                image: "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&w=1200&q=80",
+                video: "",
+                type: "image"
+            }
+        ];
+
+        function getGames() {
+            const data = localStorage.getItem("h5play_games");
+            if (!data) {
+                localStorage.setItem("h5play_games", JSON.stringify(INITIAL_DB));
+                return INITIAL_DB;
+            }
+            return JSON.parse(data);
+        }
+
+        function saveGames(games) {
+            localStorage.setItem("h5play_games", JSON.stringify(games));
+            renderGamesTable();
+            updateStats();
+        }
+
+        // 3. 渲染游戏列表
+        function renderGamesTable() {
+            const games = getGames();
+            const tbody = document.getElementById("games-table-body");
+            tbody.innerHTML = "";
+
+            if (games.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="p-8 text-center text-gray-500 text-xs">
+                            ${currentLang === 'zh' ? '暂无游戏，请点击右上方发布新游戏' : 'No games found. Click Publish to add.'}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            games.forEach((game, index) => {
+                const title = currentLang === 'zh' ? game.title_zh : game.title_en;
+                const isZip = !game.url.startsWith("http");
+                const typeLabel = isZip 
+                    ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-500/10 text-green-400 border border-green-500/20">ZIP 自动解压</span>`
+                    : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">External URL</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-800/20 transition">
+                        <td class="p-4 flex items-center gap-3">
+                            <img src="${game.image}" class="w-10 h-10 object-cover rounded-lg border border-gray-800">
+                            <div>
+                                <p class="font-bold text-white text-xs">${title}</p>
+                                <p class="text-[10px] text-gray-500 font-mono mt-0.5">${game.id}</p>
+                            </div>
+                        </td>
+                        <td class="p-4 text-xs font-semibold uppercase text-gray-400">${game.category}</td>
+                        <td class="p-4">
+                            <div class="flex flex-col gap-1 max-w-xs">
+                                ${typeLabel}
+                                <span class="text-[10px] text-gray-500 font-mono truncate hover:text-indigo-400 transition" title="${game.url}">${game.url}</span>
+                            </div>
+                        </td>
+                        <td class="p-4 text-xs">
+                            <div class="flex items-center gap-1.5 text-gray-400">
+                                📊 <span>${game.players}</span>
+                                <span class="text-gray-600">|</span>
+                                ⭐ <span class="text-yellow-500 font-semibold">${game.rating}</span>
+                            </div>
+                        </td>
+                        <td class="p-4 text-right">
+                            <div class="flex items-center justify-end gap-1.5">
+                                <a href="publish.html?id=${game.id}" target="_blank" class="p-1.5 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg transition flex items-center justify-center" title="编辑/Edit">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                </a>
+                                <button onclick="deleteGame('${game.id}')" class="p-1.5 hover:bg-red-500/10 text-gray-400 hover:text-red-500 rounded-lg transition" title="删除/Delete">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // 4. 表格搜索过滤
+        function filterGamesTable() {
+            const query = document.getElementById("search-input").value.toLowerCase();
+            const rows = document.getElementById("games-table-body").querySelectorAll("tr");
+            
+            rows.forEach(row => {
+                if (row.cells.length < 2) return; // 忽略空提示行
+                const text = row.innerText.toLowerCase();
+                if (text.includes(query)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        // 5. 更新统计仪表盘
+        function updateStats() {
+            const games = getGames();
+            document.getElementById("stat-total-games").innerText = games.length;
+            
+            // 估算托管占用大小（每个ZIP包虚拟占用）
+            let storageMB = 14.2;
+            games.forEach(g => {
+                if (!g.url.startsWith("http")) storageMB += 4.5; // 每上传一款ZIP假设增加4.5MB
+            });
+            document.getElementById("stat-storage").innerText = `${storageMB.toFixed(1)} MB`;
+        }
+
+        // 6. 删除游戏
+        function deleteGame(id) {
+            const confirmMsg = currentLang === 'zh' ? "确定要删除该小游戏并且解除静态托管吗？此操作不可逆！" : "Are you sure you want to delete this hosted game? This action cannot be undone!";
+            if (confirm(confirmMsg)) {
+                let games = getGames();
+                games = games.filter(g => g.id !== id);
+                saveGames(games);
+                showToast(currentLang === 'zh' ? "游戏已从托管仓库移除" : "Game deleted successfully!", false);
+                window.dispatchEvent(new Event("storage"));
+            }
+        }
+
+        // 11. Toast 弹窗
+        function showToast(message, isError = false) {
+            const toast = document.getElementById("toast");
+            const msgSpan = document.getElementById("toast-message");
+            msgSpan.innerText = message;
+
+            if (isError) {
+                toast.classList.remove("bg-indigo-600", "border-indigo-500");
+                toast.classList.add("bg-red-600", "border-red-500");
+            } else {
+                toast.classList.add("bg-indigo-600", "border-indigo-500");
+                toast.classList.remove("bg-red-600", "border-red-500");
+            }
+
+            toast.classList.remove("translate-y-24", "opacity-0");
+            toast.classList.add("translate-y-0", "opacity-100");
+
+            setTimeout(() => {
+                toast.classList.remove("translate-y-0", "opacity-100");
+                toast.classList.add("translate-y-24", "opacity-0");
+            }, 3000);
+        }
+
+        // ==================== 访客 IP 日志与地理分析逻辑 / Visitor IP Logs & GEO Analytics ====================
+        const INITIAL_IP_LOGS = [
+            { ip: "172.56.21.89", country_code: "US", country: "United States", region: "California", city: "Los Angeles", device: "Desktop", timestamp: "2026-10-18 16:45", page: "Home" },
+            { ip: "114.247.50.22", country_code: "CN", country: "China", region: "Beijing", city: "Beijing", device: "Mobile", timestamp: "2026-10-18 16:30", page: "Detail: cyber-surfer" },
+            { ip: "82.165.19.141", country_code: "DE", country: "Germany", region: "Berlin", city: "Berlin", device: "Desktop", timestamp: "2026-10-18 16:12", page: "Home" },
+            { ip: "122.211.45.10", country_code: "JP", country: "Japan", region: "Tokyo", city: "Shinjuku", device: "Mobile", timestamp: "2026-10-18 15:55", page: "Detail: retro-drift" },
+            { ip: "203.116.12.5", country_code: "SG", country: "Singapore", region: "Central", city: "Singapore", device: "Desktop", timestamp: "2026-10-18 15:20", page: "Home" },
+            { ip: "86.12.140.23", country_code: "GB", country: "United Kingdom", region: "England", city: "London", device: "Mobile", timestamp: "2026-10-18 14:40", page: "Detail: tile-matching" },
+            { ip: "198.162.0.12", country_code: "CA", country: "Canada", region: "Ontario", city: "Toronto", device: "Desktop", timestamp: "2026-10-18 14:15", page: "Home" },
+            { ip: "1.120.45.98", country_code: "AU", country: "Australia", region: "New South Wales", city: "Sydney", device: "Mobile", timestamp: "2026-10-18 13:50", page: "Home" },
+            { ip: "103.241.12.8", country_code: "CN", country: "China", region: "Guangdong", city: "Shenzhen", device: "Mobile", timestamp: "2026-10-18 13:10", page: "Detail: cyber-surfer" }
+        ];
+
+        const COUNTRY_NAMES_MAP = {
+            "US": { zh: "美国", en: "United States" },
+            "CN": { zh: "中国", en: "China" },
+            "DE": { zh: "德国", en: "Germany" },
+            "JP": { zh: "日本", en: "Japan" },
+            "SG": { zh: "新加坡", en: "Singapore" },
+            "GB": { zh: "英国", en: "United Kingdom" },
+            "CA": { zh: "加拿大", en: "Canada" },
+            "AU": { zh: "澳大利亚", en: "Australia" },
+            "UN": { zh: "未知地区", en: "Unknown Location" }
+        };
+
+        function getLogs() {
+            const logs = localStorage.getItem("h5play_ip_logs");
+            if (!logs) {
+                localStorage.setItem("h5play_ip_logs", JSON.stringify(INITIAL_IP_LOGS));
+                return INITIAL_IP_LOGS;
+            }
+            return JSON.parse(logs);
+        }
+
+        function getCountryFlag(countryCode) {
+            if (!countryCode || countryCode === "UN") return "🌐";
+            const codePoints = countryCode
+                .toUpperCase()
+                .split('')
+                .map(char => 127397 + char.charCodeAt(0));
+            try {
+                return String.fromCodePoint(...codePoints);
+            } catch (e) {
+                return "🌐";
+            }
+        }
+
+        function getCountryName(log) {
+            const code = log.country_code || "UN";
+            if (COUNTRY_NAMES_MAP[code]) {
+                return currentLang === 'zh' ? COUNTRY_NAMES_MAP[code].zh : COUNTRY_NAMES_MAP[code].en;
+            }
+            return log.country || code;
+        }
+
+        function renderIPLogs() {
+            const logs = getLogs();
+            
+            // 1. 渲染地理分布 (GEO Analysis)
+            const listContainer = document.getElementById("geo-distribution-list");
+            if (listContainer) {
+                listContainer.innerHTML = "";
+                const totalLogs = logs.length;
+
+                if (totalLogs === 0) {
+                    listContainer.innerHTML = `
+                        <div class="text-center py-8 text-gray-500 text-xs">
+                            ${currentLang === 'zh' ? '暂无访客地理数据' : 'No geographic data yet.'}
+                        </div>
+                    `;
+                } else {
+                    const countryStats = {};
+                    logs.forEach(log => {
+                        const code = log.country_code || "UN";
+                        const countryName = getCountryName(log);
+                        if (!countryStats[code]) {
+                            countryStats[code] = {
+                                code: code,
+                                name: countryName,
+                                count: 0
+                            };
+                        }
+                        countryStats[code].count++;
+                    });
+
+                    const sortedStats = Object.values(countryStats).sort((a, b) => b.count - a.count);
+                    
+                    sortedStats.forEach((stat, idx) => {
+                        const percentage = ((stat.count / totalLogs) * 100).toFixed(1);
+                        const flag = getCountryFlag(stat.code);
+                        
+                        const colorClasses = [
+                            "bg-indigo-600",
+                            "bg-violet-500",
+                            "bg-fuchsia-500",
+                            "bg-emerald-500",
+                            "bg-amber-500"
+                        ];
+                        const barColor = colorClasses[idx % colorClasses.length];
+
+                        listContainer.innerHTML += `
+                            <div>
+                                <div class="flex items-center justify-between text-xs font-semibold text-gray-300 mb-1.5">
+                                    <span class="flex items-center gap-2">
+                                        <span class="text-base select-none">${flag}</span>
+                                        <span>${stat.name}</span>
+                                    </span>
+                                    <span class="text-gray-400 font-mono">${stat.count} <span class="text-[10px] font-normal text-gray-500">(${percentage}%)</span></span>
+                                </div>
+                                <div class="w-full h-1.5 bg-gray-950 rounded-full overflow-hidden border border-gray-800/40">
+                                    <div class="h-full rounded-full transition-all duration-500 ${barColor}" style="width: ${percentage}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            }
+
+            // 2. 渲染日志表格 (Live Logs Table)
+            const tbody = document.getElementById("ip-logs-table-body");
+            if (tbody) {
+                tbody.innerHTML = "";
+                
+                if (logs.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="p-8 text-center text-gray-500 text-xs">
+                                ${currentLang === 'zh' ? '暂无访客访问记录' : 'No visitor logs yet.'}
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                logs.forEach(log => {
+                    const flag = getCountryFlag(log.country_code);
+                    const countryName = getCountryName(log);
+                    const location = log.city && log.city !== "Unknown" ? `${log.region}, ${log.city}` : log.region || "";
+                    const geoLabel = `${flag} ${countryName} ${location ? `<span class="text-[10px] text-gray-500 block">${location}</span>` : ''}`;
+                    
+                    const deviceIcon = log.device === "Mobile" 
+                        ? `<span class="px-2 py-0.5 rounded text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/10 flex items-center gap-1 w-max">📱 Mobile</span>`
+                        : `<span class="px-2 py-0.5 rounded text-[10px] bg-gray-800 text-gray-300 border border-gray-700/50 flex items-center gap-1 w-max">💻 Desktop</span>`;
+
+                    // 访问页面格式化
+                    let pageLabel = log.page || "Home";
+                    if (pageLabel.startsWith("Detail: ")) {
+                        const gameId = pageLabel.replace("Detail: ", "");
+                        pageLabel = `<span class="text-indigo-400 font-semibold font-mono text-[10px]">/detail.html?id=${gameId}</span>`;
+                    } else if (pageLabel === "Home") {
+                        pageLabel = `<span class="text-gray-400 font-mono text-[10px]">/index.html</span>`;
+                    } else {
+                        pageLabel = `<span class="text-gray-400 font-mono text-[10px]">${pageLabel}</span>`;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-gray-800/10 transition">
+                            <td class="p-3 text-gray-500 font-mono text-[10px] whitespace-nowrap">${log.timestamp}</td>
+                            <td class="p-3 font-semibold text-gray-300 font-mono text-[10px]">${log.ip}</td>
+                            <td class="p-3 text-gray-300 text-xs">${geoLabel}</td>
+                            <td class="p-3">${deviceIcon}</td>
+                            <td class="p-3 truncate max-w-[120px]" title="${log.page}">${pageLabel}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function clearLogs() {
+            const confirmMsg = currentLang === 'zh' ? "确定要清空所有访客 IP 日志记录吗？" : "Are you sure you want to clear all visitor logs?";
+            if (confirm(confirmMsg)) {
+                localStorage.setItem("h5play_ip_logs", JSON.stringify([]));
+                renderIPLogs();
+                showToast(currentLang === 'zh' ? "访问日志已清空" : "Visitor logs cleared successfully!");
+            }
+        }
+
+        function resetMockLogs() {
+            const confirmMsg = currentLang === 'zh' ? "确定要重置并载入默认的全球模拟访客数据吗？" : "Are you sure you want to reset and reload default global mock logs?";
+            if (confirm(confirmMsg)) {
+                localStorage.setItem("h5play_ip_logs", JSON.stringify(INITIAL_IP_LOGS));
+                renderIPLogs();
+                showToast(currentLang === 'zh' ? "已重置并加载模拟数据" : "Mock logs reloaded successfully!");
+            }
+        }
+
+        // ==================== 轮播图配置管理逻辑 ====================
+        let tempCarouselConfig = null;
+
+        function getCarouselConfig() {
+            if (tempCarouselConfig) return tempCarouselConfig;
+            const data = localStorage.getItem("h5play_carousel_config");
+            if (!data) {
+                tempCarouselConfig = JSON.parse(JSON.stringify(PREMIUM_CAROUSEL_PRESETS));
+                localStorage.setItem("h5play_carousel_config", JSON.stringify(PREMIUM_CAROUSEL_PRESETS));
+                return tempCarouselConfig;
+            }
+            tempCarouselConfig = JSON.parse(data);
+            return tempCarouselConfig;
+        }
+
+        function renderCarouselEditor() {
+            const container = document.getElementById("carousel-editor-container");
+            if (!container) return;
+
+            const config = getCarouselConfig();
+            container.innerHTML = "";
+
+            if (config.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center bg-gray-900 border border-gray-800 rounded-2xl text-gray-500 text-xs">
+                        ${currentLang === 'zh' ? '暂无轮播图配置，请点击右上方添加幻灯片' : 'No carousel slides configured. Click Add Slide to start.'}
+                    </div>
+                `;
+                return;
+            }
+
+            config.forEach((slide, idx) => {
+                const isFirst = idx === 0;
+                const isLast = idx === config.length - 1;
+
+                container.innerHTML += `
+                    <div class="p-6 bg-gray-900 border border-gray-800 rounded-2xl shadow-lg space-y-4 relative" data-index="${idx}">
+                        <!-- 卡片头部及操作 -->
+                        <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 bg-indigo-600/20 text-indigo-400 font-bold rounded-lg flex items-center justify-center text-xs">
+                                    ${idx + 1}
+                                </span>
+                                <span class="font-bold text-sm text-white">Slide #${idx + 1}</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <!-- 上移 -->
+                                <button onclick="moveSlide(${idx}, -1)" ${isFirst ? 'disabled' : ''} 
+                                        class="p-1.5 hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 disabled:pointer-events-none rounded-lg transition" 
+                                        title="${currentLang === 'zh' ? '上移' : 'Move Up'}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"></path></svg>
+                                </button>
+                                <!-- 下移 -->
+                                <button onclick="moveSlide(${idx}, 1)" ${isLast ? 'disabled' : ''} 
+                                        class="p-1.5 hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 disabled:pointer-events-none rounded-lg transition" 
+                                        title="${currentLang === 'zh' ? '下移' : 'Move Down'}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                                <!-- 删除 -->
+                                <button onclick="deleteCarouselSlide(${idx})" 
+                                        class="p-1.5 hover:bg-red-500/10 text-gray-400 hover:text-red-500 rounded-lg transition ml-2" 
+                                        title="${currentLang === 'zh' ? '删除' : 'Delete'}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 卡片编辑表单 -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <!-- 关联游戏 ID -->
+                            <div class="space-y-1">
+                                <label class="text-gray-400 font-semibold" data-zh="关联游戏 ID" data-en="Linked Game ID">关联游戏 ID</label>
+                                <input type="text" value="${slide.id || ''}" oninput="updateSlideField(${idx}, 'id', this.value)"
+                                       class="w-full px-3 py-2 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-white outline-none transition" placeholder="e.g. cyber-surfer">
+                            </div>
+
+                            <!-- 背景类型切换 -->
+                            <div class="space-y-1">
+                                <label class="text-gray-400 font-semibold" data-zh="背景资源类型" data-en="Background Type">背景资源类型</label>
+                                <select onchange="updateSlideField(${idx}, 'type', this.value); renderCarouselEditor();" 
+                                        class="w-full px-3 py-2 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-white outline-none transition">
+                                    <option value="image" ${slide.type === 'image' ? 'selected' : ''}>${currentLang === 'zh' ? '图片背景 (Image)' : 'Image Background'}</option>
+                                    <option value="video" ${slide.type === 'video' ? 'selected' : ''}>${currentLang === 'zh' ? '视频背景 (Video)' : 'Video Background'}</option>
+                                </select>
+                            </div>
+
+                            <!-- 中文标题 -->
+                            <div class="space-y-1">
+                                <label class="text-gray-400 font-semibold" data-zh="中文标题" data-en="Title (ZH)">中文标题</label>
+                                <input type="text" value="${slide.title_zh || ''}" oninput="updateSlideField(${idx}, 'title_zh', this.value)"
+                                       class="w-full px-3 py-2 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-white outline-none transition">
+                            </div>
+
+                            <!-- 英文标题 -->
+                            <div class="space-y-1">
+                                <label class="text-gray-400 font-semibold" data-zh="英文标题" data-en="Title (EN)">英文标题</label>
+                                <input type="text" value="${slide.title_en || ''}" oninput="updateSlideField(${idx}, 'title_en', this.value)"
+                                       class="w-full px-3 py-2 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-white outline-none transition">
+                            </div>
+
+                            <!-- 背景图 URL -->
+                            <div class="space-y-1 md:col-span-2">
+                                <label class="text-gray-400 font-semibold" data-zh="图片背景 URL" data-en="Image Background URL">图片背景 URL</label>
+                                <input type="text" value="${slide.image || ''}" oninput="updateSlideField(${idx}, 'image', this.value)"
+                                       class="w-full px-3 py-2 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-white outline-none transition" placeholder="https://...">
+                            </div>
+
+                            <!-- 视频 URL -->
+                            <div class="space-y-1 md:col-span-2 ${slide.type === 'video' ? '' : 'opacity-40'}">
+                                <label class="text-gray-400 font-semibold" data-zh="视频背景 URL (仅视频类型生效)" data-en="Video Background URL (Video type only)">视频背景 URL (仅视频类型生效)</label>
+                                <input type="text" value="${slide.video || ''}" oninput="updateSlideField(${idx}, 'video', this.value)" ${slide.type === 'video' ? '' : 'disabled placeholder="请先将背景类型切换为视频 / Switch background type to video first"'}
+                                       class="w-full px-3 py-2 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-white outline-none transition" placeholder="https://...">
+                            </div>
+
+                            <!-- 中文描述 -->
+                            <div class="space-y-1">
+                                <label class="text-gray-400 font-semibold" data-zh="中文描述" data-en="Description (ZH)">中文描述</label>
+                                <textarea rows="3" oninput="updateSlideField(${idx}, 'desc_zh', this.value)"
+                                          class="w-full px-3 py-2 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-white outline-none transition resize-none">${slide.desc_zh || ''}</textarea>
+                            </div>
+
+                            <!-- 英文描述 -->
+                            <div class="space-y-1">
+                                <label class="text-gray-400 font-semibold" data-zh="英文描述" data-en="Description (EN)">英文描述</label>
+                                <textarea rows="3" oninput="updateSlideField(${idx}, 'desc_en', this.value)"
+                                          class="w-full px-3 py-2 bg-gray-950 border border-gray-800 focus:border-indigo-500 rounded-xl text-white outline-none transition resize-none">${slide.desc_en || ''}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 翻译卡片中的静态文本
+            container.querySelectorAll('[data-zh]').forEach(el => {
+                el.innerText = currentLang === 'zh' ? el.getAttribute('data-zh') : el.getAttribute('data-en');
+            });
+        }
+
+        function updateSlideField(index, field, value) {
+            const config = getCarouselConfig();
+            if (config[index]) {
+                config[index][field] = value;
+            }
+        }
+
+        function addNewCarouselSlide() {
+            const config = getCarouselConfig();
+            const newSlide = {
+                id: "new-game",
+                title_zh: "新推荐游戏",
+                title_en: "New Recommended Game",
+                desc_zh: "在这里输入新推荐游戏的中文描述介绍...",
+                desc_en: "Enter the English description for the newly recommended game here...",
+                image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
+                video: "",
+                type: "image"
+            };
+            config.push(newSlide);
+            renderCarouselEditor();
+            showToast(currentLang === 'zh' ? "已添加新幻灯片草稿" : "New slide draft added!", false);
+        }
+
+        function deleteCarouselSlide(index) {
+            const confirmMsg = currentLang === 'zh' ? "确定要删除此张幻灯片吗？" : "Are you sure you want to delete this slide?";
+            if (confirm(confirmMsg)) {
+                const config = getCarouselConfig();
+                config.splice(index, 1);
+                renderCarouselEditor();
+                showToast(currentLang === 'zh' ? "幻灯片已删除，别忘了点击保存！" : "Slide deleted. Don't forget to save changes!", false);
+            }
+        }
+
+        function moveSlide(index, direction) {
+            const config = getCarouselConfig();
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= config.length) return;
+
+            // 交换位置
+            const temp = config[index];
+            config[index] = config[targetIndex];
+            config[targetIndex] = temp;
+
+            renderCarouselEditor();
+            showToast(currentLang === 'zh' ? "已调整排序，别忘了点击保存！" : "Order adjusted. Don't forget to save changes!", false);
+        }
+
+        function saveCarouselConfig() {
+            const config = getCarouselConfig();
+            localStorage.setItem("h5play_carousel_config", JSON.stringify(config));
+            showToast(currentLang === 'zh' ? "轮播图配置保存成功，前台已同步！" : "Carousel config saved successfully!", false);
+            // 分发 storage 事件以同步前台
+            window.dispatchEvent(new Event("storage"));
+        }
+
+        function resetCarouselToDefault() {
+            const confirmMsg = currentLang === 'zh' ? "确定要重置轮播图配置为精品官方预设吗？您当前未保存的修改会被覆盖！" : "Are you sure you want to reset carousel config to official presets? Unsaved changes will be lost!";
+            if (confirm(confirmMsg)) {
+                tempCarouselConfig = JSON.parse(JSON.stringify(PREMIUM_CAROUSEL_PRESETS));
+                localStorage.setItem("h5play_carousel_config", JSON.stringify(PREMIUM_CAROUSEL_PRESETS));
+                renderCarouselEditor();
+                showToast(currentLang === 'zh' ? "已重置为官方精品预设" : "Reset to official presets completed!", false);
+                window.dispatchEvent(new Event("storage"));
+            }
+        }
+
+        // 初始化
+        window.onload = () => {
+            updateAdminUI();
+            updateStats();
+        };
+    </script>
+</body>
+</html>
