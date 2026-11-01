@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - H5Play</title>
+    <!-- 使用 Tailwind CSS 样式库 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            950: '#09090b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-950 text-gray-100 flex flex-col min-h-full font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- 导航栏 / Navigation Header -->
+    <header class="sticky top-0 z-50 bg-gray-950/80 backdrop-blur-md border-b border-gray-900 px-6 py-4 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            
+            <a href="index.html" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-black text-xl text-white shadow-lg shadow-indigo-600/30 group-hover:scale-105 transition-transform">
+                    H
+                </div>
+                <span class="text-xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">H5Play</span>
+            </a>
+
+            <!-- 分类及导航 -->
+            <nav class="flex items-center gap-4 md:gap-8 text-xs md:text-sm font-medium text-gray-300">
+                <a href="index.html" class="hover:text-indigo-400 transition duration-200" data-i18n="nav_home">Home</a>
+            </nav>
+
+            <!-- 右侧控制区（双语切换） -->
+            <div class="flex items-center gap-4">
+                <div class="flex items-center bg-gray-900 border border-gray-800 rounded-lg p-1 text-xs font-semibold">
+                    <button class="lang-btn px-3 py-1.5 rounded-md transition" data-lang="zh">中</button>
+                    <button class="lang-btn px-3 py-1.5 rounded-md transition" data-lang="en">EN</button>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- 主体区域 / Main Body -->
+    <main class="flex-1 w-full max-w-4xl mx-auto px-6 py-12 flex flex-col gap-8">
+        
+        <!-- 标题区 -->
+        <div class="border-b border-gray-950 pb-6">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight" data-i18n="privacy_title">Privacy & Cookie Policy</h1>
+            <p class="text-gray-400 text-sm mt-2">Last Updated: October 2026</p>
+        </div>
+
+        <!-- 详细内容条文 -->
+        <article class="prose prose-invert prose-indigo max-w-none flex flex-col gap-6 text-gray-300 text-sm md:text-base leading-relaxed">
+            
+            <p data-i18n="privacy_p1">
+                Your privacy is important to us. This privacy policy explains what personal information we collect, use, and safeguard when you browse H5Play.
+            </p>
+
+            <section class="mt-4">
+                <h2 class="text-xl font-bold text-white mb-3" data-i18n="privacy_adsense_title">Google AdSense & Third-Party Services</h2>
+                <p data-i18n="privacy_adsense_p">
+                    We use Google AdSense to serve ads when you visit our website. Google, as a third-party vendor, uses cookies to serve ads based on a user's prior visits to your website or other websites. Users may opt out of personalized advertising by visiting Google's Ads Settings.
+                </p>
+            </section>
+
+            <section class="mt-4">
+                <h2 class="text-xl font-bold text-white mb-3" data-i18n="privacy_cookie_title">How We Use Cookies</h2>
+                <p data-i18n="privacy_cookie_p">
+                    We use cookies to remember your language preferences, analyze our site traffic, and optimize your overall browsing experience. By continuing to use our website, you consent to our use of cookies.
+                </p>
+            </section>
+
+            <section class="mt-4">
+                <h2 class="text-xl font-bold text-white mb-3">Contact Us / 联系我们</h2>
+                <p>
+                    If you have any questions about this Privacy Policy, please feel free to reach out to us at: 
+                    <a href="mailto:support@h5play.com" class="text-indigo-400 hover:underline">support@h5play.com</a>.
+                </p>
+            </section>
+
+        </article>
+
+    </main>
+
+    <!-- 页脚 / Footer -->
+    <footer class="bg-gray-950 border-t border-gray-900 py-12 px-6 mt-16 text-sm text-gray-500 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <a href="index.html" class="flex items-center gap-3 group">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-lg text-white group-hover:scale-105 transition-transform">
+                    H
+                </div>
+                <span class="font-extrabold tracking-wider text-gray-300">H5Play</span>
+            </a>
+            <p class="text-xs text-center md:text-left" data-i18n="footer_rights">
+                &copy; 2026 H5Play. All Rights Reserved.
+            </p>
+            <div class="flex items-center gap-6 text-xs">
+                <a href="index.html" class="hover:text-indigo-400 transition" data-i18n="nav_home">Home</a>
+                <a href="privacy.html" class="hover:text-indigo-400 transition" data-i18n="nav_privacy">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 主要交互及数据绑定主脚本 -->
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
