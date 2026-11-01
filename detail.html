@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Detail - H5Play</title>
+    <!-- 使用 Tailwind CSS 样式库 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            950: '#09090b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-950 text-gray-100 flex flex-col min-h-full font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- 导航栏 / Navigation Header -->
+    <header class="sticky top-0 z-50 bg-gray-950/80 backdrop-blur-md border-b border-gray-900 px-6 py-4 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            
+            <a href="index.html" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-black text-xl text-white shadow-lg shadow-indigo-600/30 group-hover:scale-105 transition-transform">
+                    H
+                </div>
+                <span class="text-xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">H5Play</span>
+            </a>
+
+            <!-- 分类及导航 -->
+            <nav class="flex items-center gap-4 md:gap-8 text-xs md:text-sm font-medium text-gray-300">
+                <a href="index.html" class="hover:text-indigo-400 transition duration-200" data-i18n="nav_home">Home</a>
+            </nav>
+
+            <!-- 右侧控制区（双语切换） -->
+            <div class="flex items-center gap-4">
+                <div class="flex items-center bg-gray-900 border border-gray-800 rounded-lg p-1 text-xs font-semibold">
+                    <button class="lang-btn px-3 py-1.5 rounded-md transition" data-lang="zh">中</button>
+                    <button class="lang-btn px-3 py-1.5 rounded-md transition" data-lang="en">EN</button>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- 主体区域 / Main Body -->
+    <main class="flex-1 w-full max-w-7xl mx-auto px-6 py-8 flex flex-col gap-8">
+        
+        <!-- 返回面包屑 -->
+        <div>
+            <a href="index.html" class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-indigo-400 transition duration-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                <span data-i18n="play_mode_back">Back to Portal</span>
+            </a>
+        </div>
+
+        <!-- 双栏设计：左侧播放器 & 详情；右侧侧边广告 -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+            
+            <!-- 左侧内容列 -->
+            <div class="lg:col-span-3 flex flex-col gap-8">
+                
+                <!-- 详情大播放按钮区 (支持视频静音预览 & 点击拉起新页面播放) -->
+                <div id="game-preview-container" class="relative w-full aspect-video rounded-2xl overflow-hidden bg-cover bg-center shadow-2xl group border border-gray-900">
+                    
+                    <!-- 首屏大播放视频渲染 (静音，loop) -->
+                    <video id="detail-preview-video" class="absolute inset-0 w-full h-full object-cover opacity-50 hidden" loop muted playsinline></video>
+                    
+                    <div class="absolute inset-0 bg-black/45 backdrop-blur-[1px]"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/20 to-transparent"></div>
+                    
+                    <!-- 居中播放控制 -->
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 z-10">
+                        <button onclick="launchGameFromDetail()" 
+                                class="w-20 h-20 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-600/50 hover:shadow-indigo-500/70 transition-all duration-300 group-hover:scale-110 mb-6">
+                            <svg class="w-10 h-10 fill-current translate-x-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </button>
+                        <h2 id="detail-title" class="text-2xl md:text-4xl font-extrabold text-white mb-2 drop-shadow select-none">Loading Game...</h2>
+                        <span class="text-xs font-semibold text-indigo-400 uppercase tracking-widest" data-i18n="hero_play">PLAY NOW</span>
+                    </div>
+                </div>
+
+                <!-- 增加：游戏元数据展示区域 (丰富度和专业度提升) -->
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+                        <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1" data-i18n="game_rating">Rating</span>
+                        <span id="detail-rating" class="text-lg font-black text-amber-400">⭐ --</span>
+                    </div>
+                    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+                        <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1" data-i18n="stats_plays">Plays</span>
+                        <span id="detail-plays" class="text-lg font-black text-white">--</span>
+                    </div>
+                    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+                        <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1" data-i18n="stats_category">Category</span>
+                        <span id="detail-category" class="text-xs font-bold text-indigo-400 block mt-1 uppercase truncate">--</span>
+                    </div>
+                </div>
+
+                <!-- 游戏详细图文介绍区 -->
+                <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 flex flex-col gap-6">
+                    <div>
+                        <h3 class="text-base font-bold text-white mb-3" data-i18n="game_desc_title">About the Game</h3>
+                        <p id="detail-desc" class="text-sm text-gray-300 leading-relaxed">Loading details...</p>
+                    </div>
+
+                    <hr class="border-gray-800">
+
+                    <div>
+                        <h3 class="text-base font-bold text-white mb-3" data-i18n="game_control_title">How to Play</h3>
+                        <p class="text-sm text-gray-300 leading-relaxed" data-i18n="game_control_content">
+                            Use WASD / Arrow Keys or mouse click & drag to control. Tap on screen directly when playing on mobile devices.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 核心重构：玩家双语评论区模块 (评论提交、即时发表、持久化渲染) -->
+                <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 flex flex-col gap-6">
+                    <h3 class="text-lg font-bold text-white border-l-4 border-indigo-600 pl-3" data-i18n="comments_section_title">
+                        Player Comments 💬
+                    </h3>
+
+                    <!-- 评论输入框 -->
+                    <div class="flex flex-col gap-3">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <input type="text" id="comment-name-input" data-i18n-attr="placeholder:comments_name_placeholder" placeholder="Your Name"
+                                   class="col-span-1 bg-gray-950 border border-gray-800 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 placeholder-gray-600">
+                        </div>
+                        <textarea id="comment-content-input" rows="3" data-i18n-attr="placeholder:comments_input_placeholder" placeholder="Write your review here. What do you think..."
+                                  class="w-full bg-gray-950 border border-gray-800 rounded-lg p-4 text-sm text-white focus:outline-none focus:border-indigo-500 placeholder-gray-600 resize-none"></textarea>
+                        <div class="flex justify-end">
+                            <button onclick="submitNewComment()" 
+                                    class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-xs font-bold text-white rounded-lg shadow-lg shadow-indigo-600/20 transition-all duration-200"
+                                    data-i18n="comments_submit_btn">
+                                Submit Review
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr class="border-gray-800/60">
+
+                    <!-- 历史评论滚动展现层 -->
+                    <div id="comments-list" class="flex flex-col gap-4 max-h-[400px] overflow-y-auto pr-2">
+                        <!-- JS 动态注入评论 -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 右侧广告列（极致防误触 AdSense Banner - CLS-Free） -->
+            <aside class="lg:col-span-1 flex flex-col gap-6 sticky top-28">
+                
+                <!-- 顶部横幅（在侧边显示） -->
+                <div class="w-full min-h-[500px] bg-gray-900 border border-gray-800 rounded-xl p-6 flex flex-col justify-between relative overflow-hidden select-none">
+                    <div>
+                        <span class="text-xs uppercase tracking-widest text-indigo-400 font-bold" data-i18n="ad_placeholder">Sponsored Advertisement</span>
+                        <h4 class="text-sm font-semibold text-gray-300 mt-4" data-i18n="ad_warn_title">AdSense Placement</h4>
+                        <p class="text-xs text-gray-500 mt-1" data-i18n="ad_warn_desc">AdSense Safe Spacing Layout</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-700">
+                            🔒
+                        </div>
+                        <span class="text-[10px] text-gray-600 font-mono">Google AdSense Safety Layout (32px padding)</span>
+                    </div>
+                    <div class="absolute -right-20 -top-20 w-40 h-40 bg-indigo-600/5 rounded-full blur-2xl"></div>
+                </div>
+
+            </aside>
+
+        </div>
+
+    </main>
+
+    <!-- 页脚 / Footer -->
+    <footer class="bg-gray-950 border-t border-gray-900 py-12 px-6 mt-16 text-sm text-gray-500 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <a href="index.html" class="flex items-center gap-3 group">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-lg text-white group-hover:scale-105 transition-transform">
+                    H
+                </div>
+                <span class="font-extrabold tracking-wider text-gray-300">H5Play</span>
+            </a>
+            <p class="text-xs text-center md:text-left" data-i18n="footer_rights">
+                &copy; 2026 H5Play. All Rights Reserved.
+            </p>
+            <div class="flex items-center gap-6 text-xs">
+                <a href="index.html" class="hover:text-indigo-400 transition" data-i18n="nav_home">Home</a>
+                <a href="privacy.html" class="hover:text-indigo-400 transition" data-i18n="nav_privacy">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 主要交互及数据绑定主脚本 -->
+    <script src="assets/js/app.js"></script>
+    <script>
+        // 执行详情页特定的逻辑
+        document.addEventListener("DOMContentLoaded", () => {
+            renderActiveGameDetail();
+            
+            // 翻译特定输入框的 placeholder 属性
+            translatePlaceholders();
+        });
+
+        // 监听多语言切换，额外刷新 placeholder 属性
+        const originalApplyLanguage = applyLanguage;
+        applyLanguage = function(lang) {
+            originalApplyLanguage(lang);
+            translatePlaceholders();
+        };
+
+        function translatePlaceholders() {
+            document.querySelectorAll("[data-i18n-attr]").forEach(el => {
+                const attrSpec = el.getAttribute("data-i18n-attr");
+                const [attrName, dictKey] = attrSpec.split(":");
+                if (translations[currentLang][dictKey]) {
+                    el.setAttribute(attrName, translations[currentLang][dictKey]);
+                }
+            });
+        }
+
+        function launchGameFromDetail() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const gameId = urlParams.get("id");
+            if (gameId) {
+                launchGame(gameId);
+            }
+        }
+    </script>
+</body>
+</html>
